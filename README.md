@@ -98,7 +98,7 @@ Uses registry keys to build a list of installed applications and `driverquery` f
 		"kind": "Driver",
 		"name": "Intel(R) Serial IO I2C Driver v2",
 		"id": "iaLPSS2i_I2C_CNL",
-		"version": "",
+		"version": "30.100.1929.1",
 		"path": "C:\\Windows\\system32\\drivers\\iaLPSS2i_I2C_CNL.sys",
 		"modified": "2019-07-14T22:12:12Z",
 		"publishers": []
@@ -107,7 +107,7 @@ Uses registry keys to build a list of installed applications and `driverquery` f
 		"kind": "Driver",
 		"name": "Intel(R) Serial IO I2C Driver v2",
 		"id": "iaLPSS2i_I2C_GLK",
-		"version": "",
+		"version": "30.100.1820.1",
 		"path": "C:\\Windows\\system32\\drivers\\iaLPSS2i_I2C_GLK.sys",
 		"modified": "2018-05-15T22:46:02Z",
 		"publishers": []
