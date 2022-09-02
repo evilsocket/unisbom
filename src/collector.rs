@@ -1,10 +1,10 @@
-use crate::component::Component;
+use crate::component::ComponentTrait;
 use crate::Error;
 
 pub(crate) trait Collector {
     fn setup(&mut self) -> Result<(), Error>;
-    fn collect(&self) -> Result<Vec<Box<dyn Component>>, Error>;
-    fn collect_from_json(&self, json: &str) -> Result<Vec<Box<dyn Component>>, Error>;
+    fn collect(&self) -> Result<Vec<Box<dyn ComponentTrait>>, Error>;
+    fn collect_from_json(&self, json: &str) -> Result<Vec<Box<dyn ComponentTrait>>, Error>;
 }
 
 #[cfg(target_os = "macos")]

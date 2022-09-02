@@ -53,7 +53,12 @@ fn main() -> Result<(), Error> {
             }
         }
         OutputFormat::JSON => {
-            let json = serde_json::to_string(&components)
+            let serializable: Vec<component::Component> = components
+                .iter()
+                .map(component::Component::from_trait)
+                .collect();
+
+            let json = serde_json::to_string(&serializable)
                 .map_err(|e| format!("can't serialize to json: {:?}", e))?;
 
             println!("{}", json);

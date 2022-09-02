@@ -4,12 +4,14 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::collector;
-use crate::component::*;
+use crate::component::{ComponentTrait, Kind};
 use crate::utils::serde::string_as_string_vector;
 use crate::Error;
 
 #[derive(Serialize, Deserialize)]
 struct Application {
+    #[serde(skip_deserializing)]
+    pub kind: Kind,
     #[serde(rename = "_name")]
     pub name: String,
     pub arch_kind: String,
@@ -23,9 +25,9 @@ struct Application {
     pub version: String,
 }
 
-impl Component for Application {
+impl ComponentTrait for Application {
     fn kind(&self) -> Kind {
-        Kind::Application
+        self.kind
     }
 
     fn name(&self) -> &str {
@@ -55,6 +57,8 @@ impl Component for Application {
 
 #[derive(Serialize, Deserialize)]
 struct Extension {
+    #[serde(skip_deserializing)]
+    pub kind: Kind,
     #[serde(rename = "_name")]
     pub name: String,
     #[serde(rename = "spext_architectures", default)]
@@ -88,7 +92,7 @@ struct Extension {
     pub version: String,
 }
 
-impl Component for Extension {
+impl ComponentTrait for Extension {
     fn kind(&self) -> Kind {
         Kind::Driver
     }
@@ -134,8 +138,8 @@ impl collector::Collector for Collector {
         Ok(())
     }
 
-    fn collect_from_json(&self, json: &str) -> Result<Vec<Box<dyn Component>>, Error> {
-        let mut comps: Vec<Box<dyn Component>> = vec![];
+    fn collect_from_json(&self, json: &str) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
+        let mut comps: Vec<Box<dyn ComponentTrait>> = vec![];
 
         let profile: Profile = serde_json::from_str(json)
             .map_err(|e| format!("could not parse system_profiler output: {:?}", e))?;
@@ -151,8 +155,8 @@ impl collector::Collector for Collector {
         Ok(comps)
     }
 
-    fn collect(&self) -> Result<Vec<Box<dyn Component>>, Error> {
-        log::info!("collecting macOS applications and drivers, please wait ...");
+    fn collect(&self) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
+        log::info!("collecting applications and drivers, please wait ...");
 
         let profiler = Command::new("system_profiler")
             .arg("SPExtensionsDataType")

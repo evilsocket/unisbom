@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use winreg::{enums::*, RegKey, RegValue};
 
 use crate::collector;
-use crate::component::*;
+use crate::component::{ComponentTrait, Kind};
 use crate::Error;
 
 const HKLM: RegKey = RegKey::predef(HKEY_LOCAL_MACHINE);
@@ -96,7 +96,7 @@ impl Application {
     }
 }
 
-impl Component for Application {
+impl ComponentTrait for Application {
     fn kind(&self) -> Kind {
         Kind::Application
     }
@@ -181,7 +181,7 @@ impl Driver {
     }
 }
 
-impl Component for Driver {
+impl ComponentTrait for Driver {
     fn kind(&self) -> Kind {
         Kind::Driver
     }
@@ -215,8 +215,8 @@ impl Component for Driver {
 pub(crate) struct Collector {}
 
 impl Collector {
-    fn collect_drivers(&self) -> Result<Vec<Box<dyn Component>>, Error> {
-        let mut comps: Vec<Box<dyn Component>> = vec![];
+    fn collect_drivers(&self) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
+        let mut comps: Vec<Box<dyn ComponentTrait>> = vec![];
 
         let driverquery = Command::new("driverquery.exe")
             .arg("/v")
@@ -246,8 +246,8 @@ impl Collector {
         Ok(comps)
     }
 
-    fn collect_apps(&self) -> Result<Vec<Box<dyn Component>>, Error> {
-        let mut comps: Vec<Box<dyn Component>> = vec![];
+    fn collect_apps(&self) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
+        let mut comps: Vec<Box<dyn ComponentTrait>> = vec![];
 
         for location in UNINSTALL_LOCATIONS {
             let uninstall = HKLM
@@ -291,12 +291,12 @@ impl collector::Collector for Collector {
         Ok(())
     }
 
-    fn collect_from_json(&self, _: &str) -> Result<Vec<Box<dyn Component>>, Error> {
+    fn collect_from_json(&self, _: &str) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
         Err("not implemented".to_owned())
     }
 
-    fn collect(&self) -> Result<Vec<Box<dyn Component>>, Error> {
-        log::info!("collecting Windows applications and drivers, please wait ...");
+    fn collect(&self) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
+        log::info!("collecting applications and drivers, please wait ...");
 
         let mut drivers = self.collect_drivers()?;
         let mut apps = self.collect_apps()?;
