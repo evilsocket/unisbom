@@ -21,7 +21,9 @@ fn main() -> Result<(), Error> {
     }
     pretty_env_logger::init();
 
-    let components = collector::get()?.collect()?;
+    // let components = collector::get()?.collect()?;
+    let json = std::fs::read_to_string("./test-macos.json").unwrap();
+    let components = collector::get()?.collect_from_json(&json)?;
 
     for comp in components {
         println!(

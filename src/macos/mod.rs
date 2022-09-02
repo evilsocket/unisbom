@@ -134,10 +134,26 @@ impl collector::Collector for Collector {
         Ok(())
     }
 
+    fn collect_from_json(&self, json: &str) -> Result<Vec<Box<dyn Component>>, Error> {
+        let mut comps: Vec<Box<dyn Component>> = vec![];
+
+        let profile: Profile = serde_json::from_str(json)
+            .map_err(|e| format!("could not parse system_profiler output: {:?}", e))?;
+
+        for ext in profile.drivers {
+            comps.push(Box::new(ext));
+        }
+
+        for app in profile.apps {
+            comps.push(Box::new(app));
+        }
+
+        Ok(comps)
+    }
+
     fn collect(&self) -> Result<Vec<Box<dyn Component>>, Error> {
         log::info!("collecting macOS applications and drivers, please wait ...");
 
-        let mut comps: Vec<Box<dyn Component>> = vec![];
         let profiler = Command::new("system_profiler")
             .arg("SPExtensionsDataType")
             .arg("SPApplicationsDataType")
@@ -155,17 +171,7 @@ impl collector::Collector for Collector {
         }
 
         let raw_profile = String::from_utf8_lossy(&profiler.stdout);
-        let profile: Profile = serde_json::from_str(&raw_profile)
-            .map_err(|e| format!("could not parse system_profiler output: {:?}", e))?;
 
-        for ext in profile.drivers {
-            comps.push(Box::new(ext));
-        }
-
-        for app in profile.apps {
-            comps.push(Box::new(app));
-        }
-
-        Ok(comps)
+        self.collect_from_json(&raw_profile)
     }
 }
