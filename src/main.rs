@@ -4,6 +4,7 @@ pub(crate) type Error = String;
 
 mod collector;
 mod component;
+mod format;
 mod utils;
 
 #[cfg(target_os = "macos")]
@@ -37,29 +38,8 @@ fn main() -> Result<(), Error> {
     let components = collector::get()?.collect()?;
 
     match args.format {
-        OutputFormat::Text => {
-            for comp in components {
-                println!(
-                    "<{}> [{:?}] name={} version={} path={}",
-                    comp.modified(),
-                    comp.kind(),
-                    comp.name(),
-                    comp.version(),
-                    comp.path()
-                );
-            }
-        }
-        OutputFormat::JSON => {
-            let serializable: Vec<component::Component> = components
-                .iter()
-                .map(component::Component::from_trait)
-                .collect();
-
-            let json = serde_json::to_string(&serializable)
-                .map_err(|e| format!("can't serialize to json: {:?}", e))?;
-
-            println!("{}", json);
-        }
+        OutputFormat::Text => format::to_text(components, std::io::stdout())?,
+        OutputFormat::JSON => format::to_json(components, std::io::stdout())?,
     }
 
     Ok(())
