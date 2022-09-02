@@ -44,11 +44,11 @@ impl Component for Application {
         &self.path
     }
 
-    fn modified(&self) -> &DateTime<Utc> {
-        &self.modified
+    fn modified(&self) -> DateTime<Utc> {
+        self.modified
     }
 
-    fn signed_by(&self) -> &Vec<String> {
+    fn publishers(&self) -> &Vec<String> {
         &self.signed_by
     }
 }
@@ -109,11 +109,11 @@ impl Component for Extension {
         &self.path
     }
 
-    fn modified(&self) -> &DateTime<Utc> {
-        &self.last_modified
+    fn modified(&self) -> DateTime<Utc> {
+        self.last_modified
     }
 
-    fn signed_by(&self) -> &Vec<String> {
+    fn publishers(&self) -> &Vec<String> {
         &self.signed_by
     }
 }

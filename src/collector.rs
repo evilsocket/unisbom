@@ -7,16 +7,29 @@ pub(crate) trait Collector {
     fn collect_from_json(&self, json: &str) -> Result<Vec<Box<dyn Component>>, Error>;
 }
 
+#[cfg(target_os = "macos")]
 pub(crate) fn get() -> Result<Box<dyn Collector>, Error> {
-    if cfg!(target_os = "macos") {
-        use crate::macos;
+    use crate::macos;
 
-        let mut coll = macos::Collector::default();
+    let mut coll = macos::Collector::default();
 
-        coll.setup()?;
+    coll.setup()?;
 
-        return Ok(Box::new(coll));
-    }
+    Ok(Box::new(coll))
+}
 
+#[cfg(target_os = "windows")]
+pub(crate) fn get() -> Result<Box<dyn Collector>, Error> {
+    use crate::windows;
+
+    let mut coll = windows::Collector::default();
+
+    coll.setup()?;
+
+    Ok(Box::new(coll))
+}
+
+#[cfg(target_os = "linux")]
+pub(crate) fn get() -> Result<Box<dyn Collector>, Error> {
     Err("unsupported operating system".to_string())
 }

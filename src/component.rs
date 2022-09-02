@@ -15,6 +15,6 @@ pub(crate) trait Component {
     fn id(&self) -> &str;
     fn version(&self) -> &str;
     fn path(&self) -> &str;
-    fn modified(&self) -> &DateTime<Utc>;
-    fn signed_by(&self) -> &Vec<String>;
+    fn modified(&self) -> DateTime<Utc>;
+    fn publishers(&self) -> &Vec<String>;
 }
