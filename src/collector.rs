@@ -3,7 +3,7 @@ use crate::Error;
 
 pub(crate) trait Collector {
     fn setup(&mut self) -> Result<(), Error>;
-    fn collect(&self) -> Result<Vec<Component>, Error>;
+    fn collect(&self) -> Result<Vec<Box<dyn Component>>, Error>;
 }
 
 pub(crate) fn get() -> Result<Box<dyn Collector>, Error> {

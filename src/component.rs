@@ -9,15 +9,12 @@ pub(crate) enum Kind {
     Other,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
-pub(crate) struct Component {
-    pub kind: Kind,
-    pub name: String,
-    pub id: String,
-    pub version: String,
-    pub path: String,
-    pub modified: DateTime<Utc>,
-    pub signed_by: Vec<String>,
-    // as returned by os specific code
-    pub raw_info: String,
+pub(crate) trait Component {
+    fn kind(&self) -> Kind;
+    fn name(&self) -> &str;
+    fn id(&self) -> &str;
+    fn version(&self) -> &str;
+    fn path(&self) -> &str;
+    fn modified(&self) -> &DateTime<Utc>;
+    fn signed_by(&self) -> &Vec<String>;
 }

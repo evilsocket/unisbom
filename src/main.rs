@@ -4,6 +4,7 @@ pub(crate) type Error = String;
 
 mod collector;
 mod component;
+mod utils;
 
 #[cfg(target_os = "macos")]
 mod macos;
@@ -25,7 +26,10 @@ fn main() -> Result<(), Error> {
     for comp in components {
         println!(
             "[{:?}] {} {} ({})",
-            comp.kind, &comp.name, &comp.version, &comp.path
+            comp.kind(),
+            comp.name(),
+            comp.version(),
+            comp.path()
         );
     }
 
