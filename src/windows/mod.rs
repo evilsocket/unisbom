@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::process::Command;
 
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use winreg::{enums::*, RegKey, RegValue};
 
 use crate::collector;
@@ -16,10 +16,11 @@ const UNINSTALL_LOCATIONS: &'static [&'static str] = &[
 ];
 
 #[allow(dead_code)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Application {
     pub key: String,
     pub modified: NaiveDateTime,
-    pub properties: HashMap<String, RegValue>,
+    pub properties: HashMap<String, String>,
 
     name: String,
     version: String,
@@ -28,6 +29,27 @@ struct Application {
 }
 
 impl Application {
+    fn regvalue_to_string(v: &RegValue) -> String {
+        match v.vtype {
+            REG_SZ | REG_EXPAND_SZ | REG_MULTI_SZ => {
+                let words = unsafe {
+                    #[allow(clippy::cast_ptr_alignment)]
+                    std::slice::from_raw_parts(v.bytes.as_ptr() as *const u16, v.bytes.len() / 2)
+                };
+                let mut s = String::from_utf16_lossy(words);
+                while s.ends_with('\u{0}') {
+                    s.pop();
+                }
+                if v.vtype == REG_MULTI_SZ {
+                    s.replace("\u{0}", "\n")
+                } else {
+                    s
+                }
+            }
+            _ => format!("{:?}", v.bytes),
+        }
+    }
+
     pub fn new(
         key: String,
         modified: NaiveDateTime,
@@ -36,33 +58,38 @@ impl Application {
         let mut zelf = Self {
             key,
             modified,
-            properties,
+            properties: HashMap::new(),
             name: "".to_owned(),
             version: "".to_owned(),
             path: "".to_owned(),
             publishers: vec![],
         };
 
+        for (name, prop) in properties {
+            zelf.properties
+                .insert(name, Self::regvalue_to_string(&prop));
+        }
+
         if let Some(prop) = zelf.properties.get("DisplayName") {
-            zelf.name = format!("{}", prop);
+            zelf.name = prop.to_string();
         }
 
         if let Some(prop) = zelf.properties.get("DisplayVersion") {
-            zelf.version = format!("{}", prop);
+            zelf.version = prop.to_string();
         } else if let Some(prop) = zelf.properties.get("Version") {
-            zelf.version = format!("{}", prop);
+            zelf.version = prop.to_string();
         }
 
         for path in ["InstallLocation", "InstallSource", "BundleCachePath"] {
             let location = zelf.properties.get(path);
-            if location.is_some() && location.unwrap().bytes.len() > 2 {
-                zelf.path = format!("{}", location.unwrap());
+            if location.is_some() && !location.unwrap().is_empty() {
+                zelf.path = location.unwrap().to_string();
                 break;
             }
         }
 
         if let Some(prop) = zelf.properties.get("Publisher") {
-            zelf.publishers.push(format!("{}", prop));
+            zelf.publishers.push(prop.to_string());
         }
 
         zelf
@@ -100,7 +127,7 @@ impl Component for Application {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Driver {
     #[serde(rename = "Module Name")]
     pub module_name: String,
