@@ -1,5 +1,3 @@
-use std::env;
-
 use clap::Parser;
 
 pub(crate) type Error = String;
@@ -31,8 +29,8 @@ struct Arguments {
 fn main() -> Result<(), Error> {
     let args = Arguments::parse();
 
-    if env::var_os("RUST_LOG").is_none() {
-        env::set_var("RUST_LOG", "info");
+    if std::env::var_os("RUST_LOG").is_none() {
+        std::env::set_var("RUST_LOG", "info");
     }
     pretty_env_logger::init();
 

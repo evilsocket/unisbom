@@ -18,4 +18,5 @@ serde_json = "1.0.85"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winreg = { version = "0.10.1", features = ["chrono"] }
+windows = { version = "0.39.0", features = ["Win32_Storage_FileSystem", "Win32_Foundation"] }
 csv = "1.1.6"
