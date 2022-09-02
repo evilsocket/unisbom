@@ -42,10 +42,9 @@ fn main() -> Result<(), Error> {
         OutputFormat::Text => {
             for comp in components {
                 println!(
-                    "<{}> [{:?}] id={} name={} version={} path={}",
+                    "<{}> [{:?}] name={} version={} path={}",
                     comp.modified(),
                     comp.kind(),
-                    comp.id(),
                     comp.name(),
                     comp.version(),
                     comp.path()
