@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use clap::Parser;
 
 pub(crate) type Error = String;
@@ -25,6 +27,9 @@ struct Arguments {
     /// Specify output format, text will print a summary of each component, while JSON will dump the full information.
     #[clap(long, value_enum, default_value_t = OutputFormat::Text)]
     format: OutputFormat,
+    /// Write output to this file instead of the standard output.
+    #[clap(long)]
+    output: Option<String>,
 }
 
 fn main() -> Result<(), Error> {
@@ -37,9 +42,20 @@ fn main() -> Result<(), Error> {
 
     let components = collector::get()?.collect()?;
 
+    let output: Box<dyn std::io::Write> = match args.output {
+        None => Box::new(std::io::stdout()),
+        Some(path) => {
+            log::info!("writing results to {} as {:?}", &path, args.format);
+            Box::new(
+                File::create(&path)
+                    .map_err(|e| format!("can't open {} for writing: {:?}", &path, e))?,
+            )
+        }
+    };
+
     match args.format {
-        OutputFormat::Text => format::to_text(components, std::io::stdout())?,
-        OutputFormat::JSON => format::to_json(components, std::io::stdout())?,
+        OutputFormat::Text => format::to_text(components, output)?,
+        OutputFormat::JSON => format::to_json(components, output)?,
     }
 
     Ok(())
