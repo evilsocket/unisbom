@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Deserialize, Serialize, Copy, Clone)]
 pub(crate) enum Kind {
+    OS,
     #[default]
     Application,
     Driver,

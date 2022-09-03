@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use chrono::{DateTime, Utc};
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::collector;
@@ -8,10 +9,50 @@ use crate::component::{ComponentTrait, Kind};
 use crate::utils::serde::string_as_string_vector;
 use crate::Error;
 
+lazy_static! {
+    static ref APPLE_DEFAULT_PUBLISHERS: Vec<String> = vec![
+        "Apple Code Signing Certification Authority".to_string(),
+        "Apple Root CA".to_string(),
+    ];
+}
+
+#[derive(Serialize, Deserialize)]
+struct OS {
+    pub os_version: String,
+}
+
+impl ComponentTrait for OS {
+    fn kind(&self) -> Kind {
+        Kind::OS
+    }
+
+    fn name(&self) -> &str {
+        "macOS"
+    }
+
+    fn id(&self) -> &str {
+        self.name()
+    }
+
+    fn version(&self) -> &str {
+        &self.os_version
+    }
+
+    fn path(&self) -> &str {
+        "/"
+    }
+
+    fn modified(&self) -> DateTime<Utc> {
+        DateTime::default()
+    }
+
+    fn publishers(&self) -> &Vec<String> {
+        &APPLE_DEFAULT_PUBLISHERS
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 struct Application {
-    #[serde(skip_deserializing)]
-    pub kind: Kind,
     #[serde(rename = "_name")]
     pub name: String,
     pub arch_kind: String,
@@ -27,7 +68,7 @@ struct Application {
 
 impl ComponentTrait for Application {
     fn kind(&self) -> Kind {
-        self.kind
+        Kind::Application
     }
 
     fn name(&self) -> &str {
@@ -57,8 +98,6 @@ impl ComponentTrait for Application {
 
 #[derive(Serialize, Deserialize)]
 struct Extension {
-    #[serde(skip_deserializing)]
-    pub kind: Kind,
     #[serde(rename = "_name")]
     pub name: String,
     #[serde(rename = "spext_architectures", default)]
@@ -124,6 +163,8 @@ impl ComponentTrait for Extension {
 
 #[derive(Deserialize)]
 struct Profile {
+    #[serde(rename = "SPSoftwareDataType")]
+    pub os: Vec<OS>,
     #[serde(rename = "SPApplicationsDataType")]
     pub apps: Vec<Application>,
     #[serde(rename = "SPExtensionsDataType")]
@@ -144,6 +185,10 @@ impl collector::Collector for Collector {
         let profile: Profile = serde_json::from_str(json)
             .map_err(|e| format!("could not parse system_profiler output: {:?}", e))?;
 
+        for os in profile.os {
+            comps.push(Box::new(os));
+        }
+
         for ext in profile.drivers {
             comps.push(Box::new(ext));
         }
@@ -159,6 +204,7 @@ impl collector::Collector for Collector {
         log::info!("collecting applications and drivers, please wait ...");
 
         let profiler = Command::new("system_profiler")
+            .arg("SPSoftwareDataType")
             .arg("SPExtensionsDataType")
             .arg("SPApplicationsDataType")
             .args(&["-detailLevel", "full"])

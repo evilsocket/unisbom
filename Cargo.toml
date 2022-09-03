@@ -16,6 +16,9 @@ pretty_env_logger = "0.4.0"
 serde = { version = "1.0.144", features = ["derive"] }
 serde_json = "1.0.85"
 
+[target.'cfg(target_os = "macos")'.dependencies]
+lazy_static = "1.4.0"
+
 [target.'cfg(target_os = "windows")'.dependencies]
 winreg = { version = "0.10.1", features = ["chrono"] }
 windows = { version = "0.39.0", features = ["Win32_Storage_FileSystem", "Win32_Foundation"] }
