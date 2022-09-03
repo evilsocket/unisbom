@@ -28,7 +28,10 @@ pub(crate) fn to_json<T: std::io::Write>(
     components: Vec<Box<dyn ComponentTrait>>,
     mut writer: T,
 ) -> Result<(), Error> {
-    let serializable: Vec<Component> = components.iter().map(Component::from_trait).collect();
+    let serializable: Vec<Component> = components
+        .iter()
+        .map(|c| Component::from_trait(c.as_ref()))
+        .collect();
 
     let json = serde_json::to_string(&serializable)
         .map_err(|e| format!("can't serialize to json: {:?}", e))?;

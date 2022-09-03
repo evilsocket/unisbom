@@ -31,7 +31,7 @@ pub(crate) struct Component {
 }
 
 impl Component {
-    pub fn from_trait(comp: &Box<dyn ComponentTrait>) -> Self {
+    pub fn from_trait(comp: &dyn ComponentTrait) -> Self {
         Self {
             kind: comp.kind(),
             name: comp.name().to_owned(),

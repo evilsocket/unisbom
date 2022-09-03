@@ -18,7 +18,7 @@ mod windows;
 enum OutputFormat {
     #[default]
     Text,
-    JSON,
+    Json,
 }
 
 #[derive(Parser, Default, Debug, Clone)]
@@ -55,7 +55,7 @@ fn main() -> Result<(), Error> {
 
     match args.format {
         OutputFormat::Text => format::to_text(components, output)?,
-        OutputFormat::JSON => format::to_json(components, output)?,
+        OutputFormat::Json => format::to_json(components, output)?,
     }
 
     Ok(())
