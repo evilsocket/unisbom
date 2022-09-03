@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::process::Command;
 
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::collector;
@@ -9,6 +10,47 @@ use crate::component::{ComponentTrait, Kind};
 use crate::Error;
 
 mod api;
+
+lazy_static! {
+    static ref MICROSOFT_DEFAULT_PUBLISHERS: Vec<String> = vec!["Microsoft".to_string(),];
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize, Deserialize)]
+struct OS {
+    pub name: String,
+    pub version: String,
+}
+
+impl ComponentTrait for OS {
+    fn kind(&self) -> Kind {
+        Kind::OS
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn id(&self) -> &str {
+        self.name()
+    }
+
+    fn version(&self) -> &str {
+        &self.version
+    }
+
+    fn path(&self) -> &str {
+        "/"
+    }
+
+    fn modified(&self) -> DateTime<Utc> {
+        DateTime::default()
+    }
+
+    fn publishers(&self) -> &Vec<String> {
+        &MICROSOFT_DEFAULT_PUBLISHERS
+    }
+}
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
@@ -182,6 +224,33 @@ impl ComponentTrait for Driver {
 pub(crate) struct Collector {}
 
 impl Collector {
+    fn collect_os(&self) -> Result<Box<dyn ComponentTrait>, Error> {
+        let ver = Command::new("cmd.exe")
+            .args(&["/c", "ver"])
+            .output()
+            .map_err(|e| format!("could not execute ver: {:?}", e))?;
+
+        if !ver.status.success() {
+            return Err(format!(
+                "ver exit status {:?}: {:?}",
+                ver.status,
+                String::from_utf8_lossy(&ver.stderr)
+            ));
+        }
+
+        let raw = String::from_utf8_lossy(&ver.stdout).into_owned();
+
+        Ok(Box::new(OS {
+            name: "Microsoft Windows".to_owned(),
+            version: raw
+                .trim()
+                .to_string()
+                .split("[Version ")
+                .collect::<Vec<&str>>()[1]
+                .replace("]", ""),
+        }))
+    }
+
     fn collect_drivers(&self) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
         let mut comps: Vec<Box<dyn ComponentTrait>> = vec![];
 
@@ -251,9 +320,11 @@ impl collector::Collector for Collector {
     fn collect(&self) -> Result<Vec<Box<dyn ComponentTrait>>, Error> {
         log::info!("collecting applications and drivers, please wait ...");
 
+        let os = self.collect_os()?;
         let mut drivers = self.collect_drivers()?;
         let mut apps = self.collect_apps()?;
 
+        drivers.push(os);
         drivers.append(&mut apps);
 
         Ok(drivers)

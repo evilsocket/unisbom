@@ -85,6 +85,17 @@ Uses registry keys to build a list of installed applications and `driverquery` f
 
 ```json
 [{
+		"kind": "OS",
+		"name": "Microsoft Windows",
+		"id": "Microsoft Windows",
+		"version": "10.0.19042.1889",
+		"path": "/",
+		"modified": "1970-01-01T00:00:00Z",
+		"publishers": [
+			"Microsoft"
+		]
+  	},
+	{
 		"kind": "Application",
 		"name": "Google Chrome",
 		"id": "Google Chrome",
