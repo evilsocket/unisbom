@@ -185,7 +185,8 @@ impl collector::Collector for Collector {
         let profile: Profile = serde_json::from_str(json)
             .map_err(|e| format!("could not parse system_profiler output: {:?}", e))?;
 
-        for os in profile.os {
+        for mut os in profile.os {
+            os.os_version = os.os_version.replace("macOS ", "");
             comps.push(Box::new(os));
         }
 

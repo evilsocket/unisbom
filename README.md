@@ -16,7 +16,7 @@ Uses `system_profiler` to build a list of installed applications and kernel exte
 		"kind": "OS",
 		"name": "macOS",
 		"id": "macOS",
-		"version": "macOS 12.5.1 (21G83)",
+		"version": "12.5.1 (21G83)",
 		"path": "/",
 		"modified": "1970-01-01T00:00:00Z",
 		"publishers": [
